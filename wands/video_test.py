@@ -25,13 +25,19 @@ import wand_tracker
 def _play_video_file(video_filename, tracker):
     print(f"Opening video {video_filename}")
     cap = cv2.VideoCapture(video_filename)
+    frame_count = 0
     # Read until video is completed
     while(cap.isOpened()):
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret == True:
-        
             cX,cY = tracker.add_frame(frame)
+            if frame_count == tracker.HISTORY_DEPTH:
+                angle = tracker.get_wand_angle()
+                print(f"Current Angle {angle}")
+                frame_count = 0
+            frame_count += 1
+
             cv2.circle(frame, (cX, cY), 15, (255, 255, 255), -1)
             # Display the resulting frame
             cv2.imshow('Frame',frame)

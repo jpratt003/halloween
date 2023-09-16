@@ -18,6 +18,8 @@ __copyright__ = """
 __license__ = "Apache 2.0"
 
 import cv2
+import math
+from typing import List
 
 class Tracker:
     IMAGE_THRESHOLD = 225
@@ -26,6 +28,9 @@ class Tracker:
     def __init__(self) -> None:
         self._center_list = [0 for i in range(self.HISTORY_DEPTH)]
         self._center_idx = 0
+
+    def _unwrap_history(self) -> List:
+        return [self._center_list[(self._center_idx + idx) % self.HISTORY_DEPTH] for idx in range(self.HISTORY_DEPTH)]
 
     def add_frame(self, frame):
         single = frame[:,:,1]
@@ -41,3 +46,14 @@ class Tracker:
         self._center_list[self._center_idx] = (cX, cY)
         self._center_idx = (self._center_idx + 1) % self.HISTORY_DEPTH
         return (cX, cY)
+
+    def get_wand_angle(self) -> float:
+        history = self._unwrap_history()
+        angle_deg = 0
+        for idx in range(1,self.HISTORY_DEPTH):
+            startX, startY = history[idx - 1]
+            endX, endY = history[idx]
+            radians = math.atan2(endY-startY, endX-startX)
+            degrees = math.degrees(radians)
+            angle_deg += degrees
+        return angle_deg / self.HISTORY_DEPTH
