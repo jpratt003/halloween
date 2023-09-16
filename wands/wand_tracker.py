@@ -20,13 +20,17 @@ __license__ = "Apache 2.0"
 import cv2
 
 class Tracker:
+    IMAGE_THRESHOLD = 225
+    HISTORY_DEPTH = 10
+
     def __init__(self) -> None:
-        pass
+        self._center_list = [0 for i in range(self.HISTORY_DEPTH)]
+        self._center_idx = 0
 
     def add_frame(self, frame):
         single = frame[:,:,1]
         # convert the grayscale image to binary image
-        ret,thresh = cv2.threshold(single,225,255,0)
+        _,thresh = cv2.threshold(single,self.IMAGE_THRESHOLD,255,0)
 
         # calculate moments of binary image
         M = cv2.moments(thresh)
@@ -34,4 +38,6 @@ class Tracker:
         # calculate x,y coordinate of center
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
+        self._center_list[self._center_idx] = (cX, cY)
+        self._center_idx = (self._center_idx + 1) % self.HISTORY_DEPTH
         return (cX, cY)
