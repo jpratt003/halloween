@@ -33,6 +33,22 @@ class Tracker:
     def _unwrap_history(self) -> List:
         return [self._center_list[(self._center_idx + idx) % self.HISTORY_DEPTH] for idx in range(self.HISTORY_DEPTH)]
 
+    def _get_dx_dy(self) -> Tuple[float, float]:
+        (startX, startY), (endX, endY) = self._get_wand_history()
+        deltaX = endX - startX
+        deltaY = endY - startY
+        return deltaX, deltaY
+
+    def _get_wand_movement(self) -> float:
+        deltaX, deltaY = self._get_dx_dy()
+        radians = math.atan2(deltaY, deltaX)
+        degrees = math.degrees(radians)
+        dist = math.sqrt(deltaX**2 + deltaY**2)
+        return dist, degrees
+
+    def _get_wand_history(self) ->Tuple[float, float]:
+        return (self._center_list[self._center_idx-1], self._center_list[self._center_idx])
+
     def add_frame(self, frame):
         single = frame[:,:,1]
         # convert the grayscale image to binary image
@@ -51,25 +67,8 @@ class Tracker:
         self._center_idx = (self._center_idx + 1) % self.HISTORY_DEPTH
         return (cX, cY)
 
-    def get_dx_dy(self) -> Tuple[float, float]:
-        startX, startY = self._center_list[self._center_idx - 1]
-        endX, endY = self._center_list[self._center_idx]
-        deltaX = endX - startX
-        deltaY = endY - startY
-        return deltaX, deltaY
-
-    def get_wand_movement(self) -> float:
-        deltaX, deltaY = self.get_dx_dy()
-        radians = math.atan2(deltaY, deltaX)
-        degrees = math.degrees(radians)
-        dist = math.sqrt(deltaX**2 + deltaY**2)
-        return dist, degrees
-
-    def get_wand_history(self) ->Tuple[float, float]:
-        return (self._center_list[self._center_idx-1], self._center_list[self._center_idx])
-
     def get_movement_name(self) -> str:
-        dist, degrees = self.get_wand_movement()
+        dist, degrees = self._get_wand_movement()
         if dist < self.MIN_MOVEMENT:
             return ""
         

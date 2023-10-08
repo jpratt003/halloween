@@ -34,12 +34,12 @@ def _play_video_file(video_filename, tracker):
             cX,cY = tracker.add_frame(frame)
 
             cv2.circle(frame, (cX, cY), 15, (255, 255, 255), -1)
-            oldest_center, newest_center = tracker.get_wand_history()
+            oldest_center, newest_center = tracker._get_wand_history()
             cv2.line(frame, oldest_center, newest_center, (255,0,0), 5)
             # Display the resulting frame
             cv2.imshow('Frame',frame)
 
-            deltaX, deltaY = tracker.get_dx_dy()
+            deltaX, deltaY = tracker._get_dx_dy()
             line_start = (int(100 - deltaX/2), int(100 - deltaY/2))
             line_end = (int(100 + deltaX/2), int(100 + deltaY/2))
             compass_img = np.zeros((200, 200, 3), np.uint8)
