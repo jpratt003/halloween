@@ -19,28 +19,37 @@ __license__ = "Apache 2.0"
 
 import argparse
 import cv2
+import numpy as np
 
 import wand_tracker
 
 def _play_video_file(video_filename, tracker):
     print(f"Opening video {video_filename}")
     cap = cv2.VideoCapture(video_filename)
-    frame_count = 0
     # Read until video is completed
     while(cap.isOpened()):
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret == True:
             cX,cY = tracker.add_frame(frame)
-            if frame_count == tracker.HISTORY_DEPTH:
-                angle = tracker.get_wand_angle()
-                print(f"Current Angle {angle}")
-                frame_count = 0
-            frame_count += 1
 
             cv2.circle(frame, (cX, cY), 15, (255, 255, 255), -1)
+            oldest_center, newest_center = tracker.get_wand_history()
+            cv2.line(frame, oldest_center, newest_center, (255,0,0), 5)
             # Display the resulting frame
             cv2.imshow('Frame',frame)
+
+            deltaX, deltaY = tracker.get_dx_dy()
+            line_start = (int(100 - deltaX/2), int(100 - deltaY/2))
+            line_end = (int(100 + deltaX/2), int(100 + deltaY/2))
+            compass_img = np.zeros((200, 200, 3), np.uint8)
+            cv2.line(compass_img, line_start, line_end, (255, 0, 0), 5)
+
+            movement_name = tracker.get_movement_name()
+            image = cv2.putText(compass_img, movement_name, (50,50), cv2.FONT_HERSHEY_SIMPLEX,  
+                            1, (255,0,0), 2, cv2.LINE_AA) 
+
+            cv2.imshow("Compass", compass_img)
         
             # Press Q on keyboard to  exit
             if cv2.waitKey(25) & 0xFF == ord('q'):
