@@ -24,7 +24,7 @@ import numpy as np
 import wand_tracker
 import spell
 
-def _play_video_file(video_filename, tracker):
+def _play_video_file(video_filename):
     print(f"Opening video {video_filename}")
     cap = cv2.VideoCapture(video_filename)
     success = False
@@ -33,6 +33,7 @@ def _play_video_file(video_filename, tracker):
         success = True
 
     leviosa = spell.Spell(["right", "down"], _declare_success)
+
     # Read until video is completed
     while(cap.isOpened()):
         # Capture frame-by-frame
@@ -77,5 +78,4 @@ if __name__ == "__main__":
     parser.add_argument("--input", "-i", help="input processing file",
                     type=str)
     args = parser.parse_args()
-    wand_tracker = wand_tracker.Tracker()
-    _play_video_file(args.input, wand_tracker)
+    _play_video_file(args.input)
