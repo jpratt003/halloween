@@ -22,31 +22,38 @@ import cv2
 import numpy as np
 
 import wand_tracker
+import spell
 
 def _play_video_file(video_filename, tracker):
     print(f"Opening video {video_filename}")
     cap = cv2.VideoCapture(video_filename)
+    success = False
+    def _declare_success():
+        nonlocal success 
+        success = True
+
+    leviosa = spell.Spell(["right", "down"], _declare_success)
     # Read until video is completed
     while(cap.isOpened()):
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret == True:
-            cX,cY = tracker.add_frame(frame)
+            cX,cY = leviosa.add_frame(frame)
 
             cv2.circle(frame, (cX, cY), 15, (255, 255, 255), -1)
-            oldest_center, newest_center = tracker._get_wand_history()
+            oldest_center, newest_center = leviosa._wand_tracker._get_wand_history()
             cv2.line(frame, oldest_center, newest_center, (255,0,0), 5)
             # Display the resulting frame
             cv2.imshow('Frame',frame)
 
-            deltaX, deltaY = tracker._get_dx_dy()
+            deltaX, deltaY = leviosa._wand_tracker._get_dx_dy()
             line_start = (int(100 - deltaX/2), int(100 - deltaY/2))
             line_end = (int(100 + deltaX/2), int(100 + deltaY/2))
             compass_img = np.zeros((200, 200, 3), np.uint8)
             cv2.line(compass_img, line_start, line_end, (255, 0, 0), 5)
 
-            movement_name = tracker.get_movement_name()
-            image = cv2.putText(compass_img, movement_name, (50,50), cv2.FONT_HERSHEY_SIMPLEX,  
+            movement_name = "Success!" if success else leviosa._wand_tracker.get_movement_name()
+            cv2.putText(compass_img, movement_name, (50,50), cv2.FONT_HERSHEY_SIMPLEX,  
                             1, (255,0,0), 2, cv2.LINE_AA) 
 
             cv2.imshow("Compass", compass_img)
