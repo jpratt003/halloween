@@ -44,3 +44,8 @@ class SwitchedOutlet:
         self._off_led.off()
         time.sleep(0.2)
         self._off_led.on()
+
+    def toggle(self, duration: float) -> None:
+        self.turn_on()
+        time.sleep(duration)
+        self.turn_off

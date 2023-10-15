@@ -22,6 +22,4 @@ import time
 
 if __name__ == "__main__":
     outlet = SwitchedOutlet()
-    outlet.turn_on()
-    time.sleep(2.)
-    outlet.turn_off()
+    outlet.toggle(2.)
