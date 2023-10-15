@@ -26,15 +26,21 @@ class SwitchedOutlet:
     OFF_GPIO = 19
 
     def __init__(self) -> None:
+        # Create both controls and set to 'High'
+        # Since that is 'no input'
         self._on_led = LED(self.ON_GPIO)
+        self._on_led.on()
         self._off_led = LED(self.OFF_GPIO)
+        self._off_led.on()
 
     def turn_on(self) -> None:
+        # Toggle to 'Low' to simulate button press
         self._on_led.off()
         time.sleep(0.2)
         self._on_led.on()
 
-    def turn_off(self) -> Noffe:
+    def turn_off(self) -> None:
+        # Toggle to 'Low' to simulate button press
         self._off_led.off()
         time.sleep(0.2)
         self._off_led.on()
