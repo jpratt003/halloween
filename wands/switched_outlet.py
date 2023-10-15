@@ -17,7 +17,7 @@ __copyright__ = """
 """
 __license__ = "Apache 2.0"
 
-import RPi.GPIO as GPIO
+from gpiozero import LED
 import time
 
 
@@ -26,18 +26,15 @@ class SwitchedOutlet:
     OFF_GPIO = 19
 
     def __init__(self) -> None:
-        GPIO.setup(self.ON_GPIO, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(self.OFF_GPIO, GPIO.OUT, initial=GPIO.HIGH)
-
-    def __del__(self) -> None:
-        GPIO.cleanup((self.ON_GPIO, self.OFF_GPIO))
+        self._on_led = LED(self.ON_GPIO)
+        self._off_led = LED(self.OFF_GPIO)
 
     def turn_on(self) -> None:
-        GPIO.output(self.ON_GPIO, GPIO.LOW)
+        self._on_led.off()
         time.sleep(0.2)
-        GPIO.output(self.ON_GPIO, GPIO.HIGH)
+        self._on_led.on()
 
-    def turn_off(self) -> None:
-        GPIO.output(self.OFF_GPIO, GPIO.LOW)
+    def turn_off(self) -> Noffe:
+        self._off_led.off()
         time.sleep(0.2)
-        GPIO.output(self.OFF_GPIO, GPIO.HIGH)
+        self._off_led.on()
