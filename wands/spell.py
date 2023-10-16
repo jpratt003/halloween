@@ -37,6 +37,7 @@ class Spell:
                 # Successful end of the spell!
                 self._callback()
                 self._tracking_idx = 0
+                self._wand_tracker.clear()
             else:
                 self._tracking_idx +=1
         elif (self._tracking_idx > 0 and current_movement == self._movements[self._tracking_idx - 1]) or current_movement == "":

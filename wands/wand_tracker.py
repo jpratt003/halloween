@@ -27,7 +27,7 @@ class Tracker:
     MIN_MOVEMENT = 100
 
     def __init__(self) -> None:
-        self._center_list = [None for i in range(self.HISTORY_DEPTH)]
+        self._center_list = [(None,None) for i in range(self.HISTORY_DEPTH)]
         self._center_idx = 0
 
     def _unwrap_history(self) -> List:
@@ -35,6 +35,8 @@ class Tracker:
 
     def _get_dx_dy(self) -> Tuple[float, float]:
         (startX, startY), (endX, endY) = self._get_wand_history()
+        if startX is None or startY is None or endX is None or endY is None:
+            return 0., 0.
         deltaX = endX - startX
         deltaY = endY - startY
         return deltaX, deltaY
@@ -47,7 +49,28 @@ class Tracker:
         return dist, degrees
 
     def _get_wand_history(self) ->Tuple[float, float]:
-        return (self._center_list[self._center_idx-1], self._center_list[self._center_idx])
+        unwrapped_history = self._unwrap_history()
+        oldest_idx = 0
+        oldest_cx, oldest_cy = unwrapped_history[oldest_idx]
+        while oldest_cx is None and oldest_cy is None and oldest_idx < self.HISTORY_DEPTH - 1:
+            oldest_idx += 1
+            oldest_cx, oldest_cy = unwrapped_history[oldest_idx]
+
+        if oldest_cx is None or oldest_cy is None:
+            return (None, None), (None, None)
+        newest_idx = self.HISTORY_DEPTH - 1
+        newest_cx, newest_cy = unwrapped_history[newest_idx]
+        while newest_cx is None and newest_cy is None and newest_idx > 0:
+            newest_idx -= 1
+            newest_cx, newest_cy = unwrapped_history[newest_idx]
+
+        if newest_cx is None or newest_cy is None:
+            return (None, None), (None, None)
+        return (oldest_cx, oldest_cy), (newest_cx, newest_cy)
+
+    def clear(self) -> None:
+        self._center_list = [(None,None) for i in range(self.HISTORY_DEPTH)]
+        self._center_idx = 0
 
     def add_frame(self, frame):
         single = frame[:,:,1]
@@ -58,12 +81,14 @@ class Tracker:
         M = cv2.moments(thresh)
         
         # calculate x,y coordinate of center
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        if self._center_list[self._center_idx] is None:
-            self._center_list = [(cX, cY) for i in range(self.HISTORY_DEPTH)]
+        moments_keys = ["m10", "m00", "m01"]
+        if all([moment_key in M for moment_key in moments_keys]) and all([M[moment_key] > 0 for moment_key in moments_keys]):
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
         else:
-            self._center_list[self._center_idx] = (cX, cY)
+            cX = None
+            cY = None
+        self._center_list[self._center_idx] = (cX, cY)
         self._center_idx = (self._center_idx + 1) % self.HISTORY_DEPTH
         return (cX, cY)
 

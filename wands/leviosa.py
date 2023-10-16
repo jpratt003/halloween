@@ -17,38 +17,40 @@ __copyright__ = """
 """
 __license__ = "Apache 2.0"
 
-from picamera.array import PiRGBArray
-from picamera import PiCamera
 import time
 import cv2
+import numpy as np
 from switched_outlet import SwitchedOutlet
 from spell import Spell
+from picamera2 import Picamera2
 
 if __name__ == "__main__":
     # initialize the camera and grab a reference to the raw camera capture
-    camera = PiCamera()
-    camera.resolution = (640, 480)
-    camera.framerate = 32
+    camera = Picamera2()
+    camera.configure(camera.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
+    camera.start()
     outlet = SwitchedOutlet()
 
     def _spell_success():
         print("Leviosa!")
-        outlet.toggle(4.)
+        outlet.toggle(6.)
 
     leviosa = Spell(["right", "down"], _spell_success)
-    rawCapture = PiRGBArray(camera, size=(640, 480))
     # allow the camera to warmup
     time.sleep(0.1)
     # capture frames from the camera
-    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    while True:
         # grab the raw NumPy array representing the image, then initialize the timestamp
         # and occupied/unoccupied text
-        image = frame.array
+        image = camera.capture_array()
+        image = cv2.flip(image, 0)
         cX,cY = leviosa.add_frame(image)
 
-        cv2.circle(image, (cX, cY), 15, (255, 255, 255), -1)
+        if cX is not None and cY is not None:
+            cv2.circle(image, (cX, cY), 15, (255, 255, 255), -1)
         oldest_center, newest_center = leviosa._wand_tracker._get_wand_history()
-        cv2.line(frame, oldest_center, newest_center, (255,0,0), 5)
+        if oldest_center != (None, None) and newest_center != (None, None):
+            cv2.line(image, oldest_center, newest_center, (255,0,0), 5)
         # Display the resulting frame
         cv2.imshow('Frame',image)
 
