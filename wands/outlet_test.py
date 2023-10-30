@@ -18,7 +18,6 @@ __copyright__ = """
 __license__ = "Apache 2.0"
 
 from switched_outlet import SwitchedOutlet
-import time
 
 if __name__ == "__main__":
     outlet = SwitchedOutlet()
