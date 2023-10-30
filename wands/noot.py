@@ -38,10 +38,11 @@ if __name__ == "__main__":
     honk = Honk()
 
     def _spell_success():
-        print("NOOT NOOT!")
-        honk.honk(1.5)
+        print("Noot Noot!")
+        honk.toggle(1.0)
 
-    leviosa = Spell(["right", "down"], _spell_success)
+    leviosa = Spell(["left", "up"], _spell_success)
+    # leviosa = Spell(["up","right","left","down"], _spell_success)
     # allow the camera to warmup
     time.sleep(0.1)
     # capture frames from the camera
@@ -61,10 +62,10 @@ if __name__ == "__main__":
         cv2.imshow("Frame", image)
 
         deltaX, deltaY = leviosa._wand_tracker._get_dx_dy()
-        line_start = (int(100 - deltaX / 2), int(100 - deltaY / 2))
-        line_end = (int(100 + deltaX / 2), int(100 + deltaY / 2))
+        line_start = (int(100 - deltaX / 2), int(100 + deltaY / 2))
+        line_end = (int(100 + deltaX / 2), int(100 - deltaY / 2))
         compass_img = np.zeros((200, 200, 3), np.uint8)
-        cv2.line(compass_img, line_start, line_end, (255, 0, 0), 5)
+        cv2.arrowedLine(compass_img, line_start, line_end, (255, 0, 0), 5)
 
         movement_name = leviosa._wand_tracker.get_movement_name()
         cv2.putText(
