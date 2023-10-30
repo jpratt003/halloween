@@ -20,9 +20,10 @@ __license__ = "Apache 2.0"
 import cv2
 import math
 from typing import List, Tuple
+import numpy as np
 
 class Tracker:
-    IMAGE_THRESHOLD = 225
+    IMAGE_THRESHOLD = 250
     HISTORY_DEPTH = 15
     MIN_MOVEMENT = 100
 
@@ -34,18 +35,19 @@ class Tracker:
         return [self._center_list[(self._center_idx + idx) % self.HISTORY_DEPTH] for idx in range(self.HISTORY_DEPTH)]
 
     def _get_dx_dy(self) -> Tuple[float, float]:
+        """Returns wand motion in a y-up frame."""
         (startX, startY), (endX, endY) = self._get_wand_history()
         if startX is None or startY is None or endX is None or endY is None:
             return 0., 0.
         deltaX = endX - startX
-        deltaY = endY - startY
+        deltaY = -endY + startY
         return deltaX, deltaY
 
     def _get_wand_movement(self) -> float:
         deltaX, deltaY = self._get_dx_dy()
         radians = math.atan2(deltaY, deltaX)
         degrees = math.degrees(radians)
-        dist = math.sqrt(deltaX**2 + deltaY**2)
+        dist = math.hypot(deltaX, deltaY)
         return dist, degrees
 
     def _get_wand_history(self) ->Tuple[float, float]:
@@ -76,6 +78,7 @@ class Tracker:
         single = frame[:,:,1]
         # convert the grayscale image to binary image
         _,thresh = cv2.threshold(single,self.IMAGE_THRESHOLD,255,0)
+        cv2.imshow("thresh", thresh)
 
         # calculate moments of binary image
         M = cv2.moments(thresh)
@@ -92,15 +95,28 @@ class Tracker:
         self._center_idx = (self._center_idx + 1) % self.HISTORY_DEPTH
         return (cX, cY)
 
+    def _detect_circle(self):
+        centers = self._unwrap_history()
+        if any([ctr==(None,None) for ctr in centers]):
+            return False
+        center_points = np.array(centers)
+        center, radius = cv2.minEnclosingCircle(center_points)
+        deltas = center_points - center
+        radii = np.hypot(deltas[:,0],deltas[:,1])
+        msse = np.square(radii-radius).mean()
+        print(msse)
+        return False
+
     def get_movement_name(self) -> str:
         dist, degrees = self._get_wand_movement()
         if dist < self.MIN_MOVEMENT:
             return ""
-        
-        if degrees < 45. and degrees > -.45:
-            return "left"
+
+        if degrees < 45. and degrees > -45.:
+            return "right"
         if degrees > 45. and degrees < 135.:
             return "up"
         if degrees > -135. and degrees < -45.:
             return "down"
-        return "right"
+        else:
+            return "left"
