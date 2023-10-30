@@ -1,0 +1,29 @@
+{{ if .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    # this is the label that will be used to match the deployment to the service
+    app: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      # this should match the labels in the pod template
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        # this should match the match_labels above
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion}}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: {{ .Values.port }}
+      imagePullSecrets:
+        - name: pattern.docker.credentials
+{{ end }}

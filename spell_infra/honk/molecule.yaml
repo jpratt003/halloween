@@ -1,0 +1,10 @@
+name: honk
+
+atoms:
+  - name: honk
+    path: "atoms/server"
+
+charts:
+  - name: honk
+    path: "charts/honk"
+
