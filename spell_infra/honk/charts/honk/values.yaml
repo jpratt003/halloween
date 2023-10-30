@@ -1,0 +1,5 @@
+enabled: true
+image:
+  repo: patternlabs/honk.honk
+  # tag 
+port: 5000

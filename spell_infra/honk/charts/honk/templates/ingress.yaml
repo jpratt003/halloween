@@ -1,0 +1,23 @@
+{{ if .Values.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  annotations:
+    # pattern annotations
+    patternlabs.ai/name: "{{ .Release.Name }}"
+    patternlabs.ai/logo: "https://gateway.patternlabs.tech/static/pattern-p.png"
+spec:
+  rules:
+  - host: "{{ .Release.Name }}.{{ .Release.Namespace }}.rutherford.patternlabs.tech"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 80
+{{ end }}
+
